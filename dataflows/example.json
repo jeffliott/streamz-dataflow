@@ -1,0 +1,60 @@
+{
+    "sources" : [
+        {
+            "name" : "MockJsonSource_Example1",
+            "type" : "MockJsonSource",
+            "tags" : ["MockJson"],
+            "parameters" : {
+                "raw" : "{\"fieldA\" : \"foo\", \"fieldB\" : \"bar\"}",
+                "repeat" : 10
+            }
+        },
+        {
+            "name" : "MockCsvSource_Example2",
+            "type" : "MockCsvSource",
+            "tags" : ["MockCsv"],
+            "parameters" : {
+                "raw" : "FOO,BAR\nFOO,BAZ\nPOO,POO",
+                "fields" : ["fieldA", "fieldB"]
+            },
+            "preprocess" : [
+                {"func" : "lower"}
+            ]
+        },
+        {
+            "name" : "TestFileJson_Example3",
+            "type" : "JsonSource",
+            "tags" : ["RealJson"],
+            "parameters" : {
+                "filename" : "/home/jeffrey/projects/streamz-dataflow/dataflows/test_data.json",
+                "batch" : 2
+            },
+            "preprocess" : [
+                {"func" : "norm_region", "parameters" : {"mapping" : {"regA" : "us-east-1", "regB" : "us-east-2"}}}
+            ]
+        }
+    ],
+    "dataflow" : [
+        {"func" : "norm_to_ecs"},
+        {"func" : "lookup_geo_from_ip"},
+        {"func" : "tag", "parameters" : {"find" : "us-east-2", "mark" : "bad"}}
+    ],
+    "sinks" : [
+        {
+            "name" : "DebugConsole",
+            "type" : "DebugConsole",
+            "filt" : ["bad"],
+            "parameters" : {
+                "prefix" : "DC:^%time%^:"
+            }
+        },
+        {
+            "name" : "OutputFile_Example1",
+            "type" : "FileDirect",
+            "parameters" : {
+                "filename" : "/home/jeffrey/projects/streamz-dataflow/dataflows/test_data_output.json",
+                "batch" : 2
+            }
+        }
+    ]
+}
